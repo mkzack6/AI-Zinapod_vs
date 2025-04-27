@@ -165,9 +165,3 @@ Overall, each dataset was preprocessed consistently for **chemical validity** wh
 - **Recommendation**: Retain all 1285 rows unless redundancy significantly impacts model performance.
 
 ---
-```
-
----
-
-Would you also like me to help generate a basic `folder structure` diagram (using markdown) for how you'd organize the `/kaggle/working/` directory to accompany this README? 🚀  
-It would make the repo even more GitHub-ready!
