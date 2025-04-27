@@ -161,6 +161,7 @@ Further SMILES standardization improves chemical consistency, addressing issues 
 ---
 
 ## Additional Preprocessing: Handling [O]N=O Nitro Groups in Disconnected Structures
+The `comb_decoys.csv` is input from the combination of the processed decoys and `4700` from DUD-E, after duplicates are removed.
 
 - **Input:** `comb_decoys.csv`
 - **Output:** `comb_decoys_processed.csv`
@@ -224,7 +225,6 @@ Check the output files:
 - `decoys_output.csv` — active-decoy pairs with similarity scores
 - `decoys_output_processed_cleaned.csv` — cleaned and standardized SMILES
 - `comb_decoys_processed.csv` — final processed decoys dataset
-- `decoy_generation.log` — validation logs
 
 ---
 
