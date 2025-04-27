@@ -1,7 +1,6 @@
-```markdown
 # SMILES Preprocessing for Virtual Screening
 
-This README documents the preprocessing steps applied to the **actives**, **decoys**, and **Zinapod** datasets for virtual screening, focusing on SMILES string standardization and duplicate handling.  
+This documents the preprocessing steps applied to the **actives**, **decoys**, and **Zinapod** datasets for virtual screening, focusing on SMILES string standardization and duplicate handling.  
 The goal was to ensure chemical validity, consistency, and fairness across all datasets while preserving relevant data for training a robust model.
 
 ---
