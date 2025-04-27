@@ -13,6 +13,7 @@ The workflow consists of the following steps:
 3. Compute Morgan Fingerprints
 4. Generate Decoys
 5. Validate Decoys
+6. Preprocess SMILES for Decoys
 
 ---
 
@@ -137,6 +138,40 @@ with open('compounds.smi', 'w') as f:
 
 ---
 
+### 6. SMILES Preprocessing for Decoys Dataset
+
+**Input**: `decoys_output.csv`  
+**Output**: `decoys_output_processed_cleaned.csv`
+
+**Why**:
+- Further SMILES standardization improves chemical consistency, addressing issues related to charge states, salts, and structural errors.
+
+**Process**:
+- Applied `preprocess_smiles.py` to standardize SMILES, remove salts, neutralize charges (except for quaternary and aromatic nitrogens), and eliminate duplicates.
+- Corrected common issues:
+  - Transformed nitro groups `[N+](=O)[O-]` → `N(=O)=O`.
+  - Preserved charges on aromatic nitrogens (e.g., `[n+]`).
+  - Skipped kekulization during RDKit sanitization to accommodate charged aromatic systems.
+
+**Dependencies**: `pandas`, `rdkit`
+
+**Results**:
+
+| File | Number of Compounds |
+|:-----|:--------------------|
+| `decoys_output.csv` | 3855 |
+| `decoys_output_processed_cleaned.csv` | 2346 |
+
+- **decrease in Compounds**: The 1:3 ratio has been disturbed.
+- **Cleaner Data**: Fewer structural errors and better molecular validity.
+
+**Implications**:
+- **Improved Reliability**: The cleaner decoy dataset supports more accurate model training and virtual screening.
+- **Decoy-to-Active Ratio**: Adjusted to approximately **1:2.16**, which may affect model balance and needs to be considered during evaluation.
+- **Residual Issues**: Some unsanitized SMILES may remain due to the relaxed sanitization settings, though they are minimal.
+
+---
+
 ## Dependencies
 
 Install all dependencies using:
@@ -164,8 +199,15 @@ pip install pandas rdkit numpy scikit-learn tqdm
 python decoy_generation.py
 ```
 
-3. **Check the output**:
+3. **Post-process SMILES**:
+
+```bash
+python preprocess_smiles.py
+```
+
+4. **Check the output**:
    - `decoys_output.csv` — active-decoy pairs with similarity scores
+   - `decoys_output_processed_cleaned.csv` — cleaned and standardized SMILES
    - `decoy_generation.log` — logs of validation and issues
 
 ---
@@ -189,5 +231,6 @@ python decoy_generation.py
 - **Deprecation Warning**: RDKit’s Morgan fingerprint method shows deprecation warnings; future updates should move to `rdFingerprintGenerator.GetMorganGenerator`.
 - **Similarity Range**: Selection could be refined by enforcing a tighter Tanimoto range (e.g., 0.2–0.3).
 - **Validation**: More detailed logging of distribution statistics could enhance quality control.
+- **Preprocessing Improvements**: Future work could introduce stricter sanitization options or fallback methods for problematic SMILES during preprocessing.
 
 ---
