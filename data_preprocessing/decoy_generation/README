@@ -1,1 +1,202 @@
+Decoy Generation Process
+This project outlines the process of generating decoys for a set of active compounds, starting from data preparation to decoy validation. The goal is to produce a dataset of decoys that can be used in virtual screening to evaluate the performance of docking algorithms by distinguishing active compounds from structurally similar but inactive ones.
+Overview of the Process
+The workflow consists of the following steps:
 
+Convert CSV to SMI Format: Prepare the input data in a format suitable for cheminformatics processing.
+Load and Validate SMILES: Ensure the SMILES strings are valid and chemically meaningful.
+Compute Morgan Fingerprints: Generate molecular fingerprints for similarity comparison.
+Generate Decoys: Select decoys from a pool of compounds based on Tanimoto similarity and physicochemical properties.
+Validate Decoys: Ensure the generated decoys meet the defined criteria.
+
+Step-by-Step Process
+1. Convert CSV to SMI Format
+
+Input: A CSV file containing SMILES strings (e.g., a column of SMILES data).
+Output: An SMI file (a simple text file with one SMILES string per line).
+Reason for Chosen Route:
+SMI is a lightweight, widely-used format for SMILES data, compatible with RDKit and other cheminformatics tools.
+Converting to SMI simplifies downstream processing by standardizing the input format.
+
+
+Process:
+Use a Python script with pandas to read the CSV and extract the SMILES column.
+Write each SMILES string to a new line in an SMI file.
+Example:import pandas as pd
+
+# Read CSV
+df = pd.read_csv('compounds.csv')
+# Write SMILES to SMI file
+with open('compounds.smi', 'w') as f:
+    for smiles in df['SMILES']:
+        f.write(f"{smiles}\n")
+
+
+
+
+
+2. Load and Validate SMILES
+
+Input: SMI files (actives.smi for active compounds, pubchem_smiles.smi for the decoy pool).
+Output: Filtered DataFrames with validated SMILES and corresponding RDKit Mol objects.
+Reason for Chosen Route:
+SMILES validation ensures that only chemically valid molecules are processed, avoiding errors in fingerprint generation.
+RDKit’s MolFromSmiles is used for validation because it’s robust and widely adopted in cheminformatics.
+
+
+Process:
+Load SMI files into pandas DataFrames.
+Validate SMILES using RDKit’s Chem.MolFromSmiles with sanitization to catch invalid structures.
+Filter out invalid SMILES and log issues (e.g., invalid syntax, isolated hydrogens).
+Dependencies: pandas, rdkit.
+Criteria:
+SMILES must parse into a valid RDKit Mol object.
+Molecules with isolated hydrogens are excluded to avoid chemically unrealistic structures.
+
+
+
+
+
+3. Compute Morgan Fingerprints
+
+Input: Validated SMILES from active compounds and decoy pool.
+Output: Morgan fingerprints (bit vectors) for each compound.
+Reason for Chosen Route:
+Morgan fingerprints (circular fingerprints) are widely used for molecular similarity comparisons due to their ability to capture substructure information.
+A radius of 2 and 2048 bits were chosen to balance detail and computational efficiency.
+RDKit’s GetMorganFingerprintAsBitVect is used despite a deprecation warning (suppressed for now) because it’s still functional and widely supported.
+
+
+Process:
+Compute Morgan fingerprints using RDKit with radius=2 and nBits=2048.
+Convert fingerprints to NumPy arrays for efficient similarity computation.
+Dependencies: rdkit, numpy.
+Criteria:
+Fingerprints are generated only for validated SMILES.
+Any failure in fingerprint generation (e.g., due to sanitization errors) results in the compound being excluded.
+
+
+
+
+
+4. Generate Decoys
+
+Input: Morgan fingerprints of active compounds and decoy pool.
+Output: A CSV file (decoys_output.csv) with active-decoy pairs and their Tanimoto similarities.
+Reason for Chosen Route:
+Tanimoto similarity (computed via Jaccard distance) is a standard metric for molecular similarity, suitable for fingerprint-based comparisons.
+Batch processing (batch size of 100) was implemented to handle large datasets efficiently and prevent memory issues.
+A 1:3 active-to-decoy ratio was chosen to provide sufficient negative examples for virtual screening while keeping the dataset manageable.
+
+
+Process:
+Compute Tanimoto similarity between each active compound and all decoy pool compounds using sklearn.metrics.pairwise.pairwise_distances with the Jaccard metric.
+Sort decoys by similarity (descending) and select the top candidates that meet physicochemical criteria.
+Save results to decoys_output.csv with columns: Active_SMILES, Decoy_SMILES, and Tanimoto_Similarity.
+
+
+Dependencies: sklearn, numpy, tqdm (for progress bar).
+Criteria for Decoy Selection:
+Tanimoto Similarity: Decoys are selected based on high similarity to the active compound (top-ranked by similarity), but the script ensures they are not identical (similarity < 1).
+Physicochemical Properties:
+Molecular Weight (MW) difference: ≤ 25 Da.
+LogP difference: ≤ 1.0.
+
+
+Ratio: 1:3 (one active to three decoys).
+
+
+Rationale:
+The MW and LogP thresholds ensure decoys are physicochemically similar to actives, making them challenging negative examples in virtual screening.
+The 1:3 ratio balances dataset size and provides enough decoys for statistical robustness in docking evaluations.
+
+
+
+5. Validate Decoys
+
+Input: Generated decoys_output.csv.
+Output: Validation logs and confirmation of decoy quality.
+Reason for Chosen Route:
+Validation ensures that the generated decoys meet the intended criteria, providing confidence in their usability for downstream applications.
+Logging is used to track issues (e.g., no decoys generated) and provide transparency.
+
+
+Process:
+Verify that the number of decoys per active matches the 1:3 ratio.
+Check that Tanimoto similarities are within a reasonable range (e.g., 0.15 to 0.40, as observed in the output).
+Confirm that physicochemical criteria (MW difference ≤ 25 Da, LogP difference ≤ 1.0) are met for each active-decoy pair.
+Log statistics and any issues to decoy_generation.log.
+
+
+Dependencies: pandas, rdkit (for recomputing MW and LogP if needed).
+Criteria for Validation:
+Ratio Check: Each active should have exactly 3 decoys (or fewer if not enough valid decoys are found).
+Similarity Range: Tanimoto similarities should be between 0 and 1, typically 0.15 to 0.40, to ensure decoys are similar but not identical to actives.
+Physicochemical Match:
+MW difference ≤ 25 Da.
+LogP difference ≤ 1.0.
+
+
+
+
+Rationale:
+The similarity range ensures decoys are structurally related to actives but distinct enough to serve as negative controls.
+Physicochemical matching ensures that decoys are not easily distinguishable from actives based on basic properties, making them suitable for testing docking algorithms.
+
+
+
+Dependencies
+The following Python libraries are required:
+
+pandas: For data loading, manipulation, and saving results.
+rdkit: For SMILES validation, molecule sanitization, fingerprint generation, and physicochemical property calculation.
+numpy: For efficient array operations (e.g., fingerprint storage, similarity computation).
+sklearn: For computing pairwise distances (Tanimoto similarity via Jaccard metric).
+tqdm: For displaying a progress bar during batch processing.
+logging: For logging errors, warnings, and process information.
+
+Install dependencies using:
+pip install pandas rdkit numpy scikit-learn tqdm
+
+Note: The script was developed with specific versions to avoid compatibility issues:
+
+NumPy: 2.0.2
+scikit-learn: 1.6.1
+
+Usage
+
+Prepare your input data:
+Active compounds in actives.smi.
+Decoy pool in pubchem_smiles.smi (e.g., a subset of PubChem compounds).
+
+
+Run the script:python decoy_generation.py
+
+
+Check the output:
+decoys_output.csv: Contains the active-decoy pairs and Tanimoto similarities.
+decoy_generation.log: Logs the process, including validation results and any issues.
+
+
+
+Example Output
+The output decoys_output.csv will look like this:
+Active_SMILES,Decoy_SMILES,Tanimoto_Similarity
+Brc1ccc(C(CC2CCCC2)c2cc3cccnc3[nH]2)cc1,COC1=C(C=C(C=C1)[C@H](CC2=CC=NC=C2)C3=CC=CC=C3)OC4CCCC4,0.2535211267605634
+...
+
+
+Validation Example:
+Active MW: 369.306 Da, Decoy MW: 373.496 Da → Difference: 4.19 Da (passes).
+Active LogP: 6.0376, Decoy LogP: 5.7862 → Difference: 0.2514 (passes).
+
+
+
+Limitations and Future Improvements
+
+Deprecation Warning: RDKit issues a deprecation warning for the Morgan fingerprint method. Future updates should use rdFingerprintGenerator.GetMorganGenerator for compatibility.
+Tanimoto Similarity Range: The script selects the top 3 decoys by similarity. Adding a specific similarity range (e.g., 0.2 to 0.3) could improve decoy quality.
+Validation: Additional validation (e.g., distribution of Tanimoto similarities, decoys per active) could be logged for better quality control.
+
+License
+This project is licensed under the MIT License.
