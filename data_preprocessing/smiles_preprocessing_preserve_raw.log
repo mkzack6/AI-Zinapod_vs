@@ -1,0 +1,22 @@
+
+=== Preprocessing Actives Preserving Raw SMILES for Duplicates ===
+2025-04-27 17:08:35,764 - INFO - Starting SMILES preprocessing script preserving raw SMILES for duplicates.
+2025-04-27 17:08:35,768 - INFO - Trying to load /kaggle/input/actives/actives.csv with encoding: utf-8
+2025-04-27 17:08:35,777 - INFO - Successfully loaded /kaggle/input/actives/actives.csv with 1285 rows using encoding utf-8.
+2025-04-27 17:08:35,779 - INFO - Columns in /kaggle/input/actives/actives.csv: ['smiles', 'ec50', 'pec50', 'activity']
+2025-04-27 17:08:35,783 - INFO - Found 0 duplicates in raw SMILES before preprocessing.
+2025-04-27 17:08:35,785 - INFO - Starting preprocessing with 1285 rows.
+2025-04-27 17:08:35,787 - INFO - Standardizing SMILES in column: SMILES
+2025-04-27 17:08:35,790 - INFO - Transformation 0: Brc1ccc(C(CC2CCCC2)c2cc3cccnc3[nH]2)cc1 -> Brc1ccc(C(CC2CCCC2)c2cc3cccnc3[nH]2)cc1
+2025-04-27 17:08:35,792 - INFO - Transformation 1: Brc1ccc(cc1)C(CC1CCCC1)c1cc2cccnc2[nH]1 -> Brc1ccc(C(CC2CCCC2)c2cc3cccnc3[nH]2)cc1
+2025-04-27 17:08:35,795 - INFO - Transformation 2: C#CCNCc1csc(NC(=O)c2cc(Oc3ccc(S(C)(=O)=O)cc3)cc(-c3ncccc3C)c2)n1 -> C#CCNCc1csc(NC(=O)c2cc(Oc3ccc(S(C)(=O)=O)cc3)cc(-c3ncccc3C)c2)n1
+2025-04-27 17:08:35,797 - INFO - Transformation 3: C(Cc1ccccc1)c1csc(Nc2ncc(Sc3ccncc3)cc2Oc2ccccc2)n1 -> c1ccc(CCc2csc(Nc3ncc(Sc4ccncc4)cc3Oc3ccccc3)n2)cc1
+2025-04-27 17:08:35,799 - INFO - Transformation 4: C1CC(CO1)c1nsc(Nc2ncc(Sc3ccccn3)cc2Oc2ccccc2)n1 -> c1ccc(Oc2cc(Sc3ccccn3)cnc2Nc2nc(C3CCOC3)ns2)cc1
+2025-04-27 17:08:36,541 - INFO - After standardization, 1285 rows remain.
+2025-04-27 17:08:36,544 - INFO - Found 503 duplicates after standardization (based on canonical SMILES).
+2025-04-27 17:08:36,545 - INFO - Removing salts and neutralizing charges in column: SMILES
+2025-04-27 17:08:38,360 - INFO - After salt removal and neutralization, 1285 rows remain.
+2025-04-27 17:08:38,363 - INFO - Found 503 duplicates after salt removal and neutralization (based on canonical SMILES).
+2025-04-27 17:08:38,365 - INFO - Removing duplicates based on raw SMILES and original index...
+2025-04-27 17:08:38,371 - INFO - Removed 0 duplicates based on raw SMILES. 1285 rows remain.
+2025-04-27 17:08:38,381 - INFO - Successfully saved processed data to /kaggle/working/actives_processed_preserve_raw.csv
